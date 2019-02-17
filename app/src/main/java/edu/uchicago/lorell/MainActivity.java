@@ -131,6 +131,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             //Use this to view the files in the working directory.
             /*
+            *
+            *
 
             PackageManager m = getPackageManager();
             String s = getPackageName();

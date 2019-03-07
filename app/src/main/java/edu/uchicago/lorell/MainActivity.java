@@ -11,6 +11,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 import java.io.FileOutputStream;
@@ -30,7 +31,7 @@ import android.provider.MediaStore;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener, OnClickListener {
 
-
+    String gLabel = "";
     private static final String TAG = "MainActivity";
     Double x = 0.0;
     Double y = 0.0;
@@ -73,7 +74,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
 
     TextView xAccl, yAccl, zAccl, txtYaw, txtPitch, txtRoll, numTraces;
-    ToggleButton toggle, testButton;
+    ToggleButton toggle, testButton, circle, slashright, slashleft;
+    Button deleteLast;
 
 
 
@@ -88,6 +90,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         toggle.setOnClickListener(this);
         testButton = (ToggleButton) findViewById(R.id.testButton);
         testButton.setOnClickListener(this);
+        circle = (ToggleButton) findViewById(R.id.circle);
+        circle.setOnClickListener(this);
+        slashleft = (ToggleButton) findViewById(R.id.slashleft);
+        slashleft.setOnClickListener(this);
+        slashright = (ToggleButton) findViewById(R.id.slashright);
+        slashright.setOnClickListener(this);
+        deleteLast = (Button) findViewById(R.id.deleteLast);
+        deleteLast.setOnClickListener(this);
 
 
         xAccl = (TextView) findViewById(R.id.xAccl);
@@ -156,6 +166,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         numTraces.setText("Number of Saved Gesture Traces: " + Integer.toString(this.getFilesDir().listFiles().length - 1));
 
         toggle.setChecked(false);
+        testButton.setChecked(false);
     }
 
 
@@ -539,13 +550,48 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         switch (v.getId()){
 
+
+            case R.id.deleteLast:
+
+                File[] filelist = this.getFilesDir().listFiles();
+
+                for(int i = 0; i < filelist.length; i++){
+
+
+                    if (Character.getNumericValue(filelist[i].getName().charAt(0)) == (filelist.length-1)){
+                        filelist[i].delete();
+                        numTraces.setText("Number of Saved Gesture Traces: " + Integer.toString(this.getFilesDir().listFiles().length - 1));
+                        break;
+                    }
+
+
+                }
+
+
+
+
+                break;
+
             case R.id.toggle:
 
                 boolean on = toggle.isChecked();
-                TextView text;
 
                 // "Hit record"
                 if(on) {
+
+                    if(circle.isChecked()){
+                        gLabel = "circle";
+                    }else if(slashright.isChecked()){
+                        gLabel = "slashright";
+                    }else if(slashleft.isChecked()){
+                        gLabel = "slashleft";
+                    }else{
+                        toggle.setChecked(false);
+                        break;
+                    }
+
+
+
                     startTime = System.currentTimeMillis();
 
                     rotVecInitialized = 0;
@@ -590,7 +636,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     //new File(this.getFilesDir(), "sensorData2.txt").delete();
 
                     File[] files = this.getFilesDir().listFiles();
-                    String filename = "gestureTrace" + Integer.toString(files.length) + ".txt";
+                    String filename = Integer.toString(files.length) + gLabel + "gestureTrace.txt";
 
                     if(new File(this.getFilesDir(), filename).exists()){
                         new File(this.getFilesDir(), filename).delete();
@@ -644,6 +690,27 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 }
 
                 break;
+
+            case R.id.circle:
+
+                slashright.setChecked(false);
+                slashleft.setChecked(false);
+                break;
+
+
+            case R.id.slashleft:
+
+                circle.setChecked(false);
+                slashright.setChecked(false);
+                break;
+
+
+            case R.id.slashright:
+
+                circle.setChecked(false);
+                slashleft.setChecked(false);
+                break;
+
 
         }
 

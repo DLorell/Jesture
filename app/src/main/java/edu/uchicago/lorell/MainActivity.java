@@ -14,6 +14,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.ToggleButton;
+
 import java.io.FileOutputStream;
 import java.io.File;
 import java.io.FileWriter;
@@ -27,7 +28,26 @@ import android.content.ContentResolver;
 import android.net.Uri;
 import android.provider.MediaStore;
 
+import java.io.BufferedWriter;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.Socket;
 
+import android.app.Activity;
+import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+
+
+//Network code taken from https://sacybernetics.wordpress.com/2012/06/01/logging-accelerometer-from-android-phone-on-pc/
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener, OnClickListener {
 
@@ -54,9 +74,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private float[] rMatrix = new float[9];
 
 
-
-
-
     private SensorManager sensorManager;
     Sensor accelerometer;
     Sensor gravity;
@@ -70,13 +87,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     Double[] gravVec = new Double[3];
     float[] rotVec = new float[3];
 
-
-
-
+    //Declare visual elements on screen
     TextView xAccl, yAccl, zAccl, txtYaw, txtPitch, txtRoll, numTraces;
     ToggleButton toggle, testButton, circle, slashright, slashleft;
     Button deleteLast;
 
+    // Network stuff
+    public int PORT = 15000;
+    private Button connectPhones;
+    private String serverIpAddress = "10.0.0.5";
+    private boolean connected = false;
+    EditText port;
+    EditText ipAdr;
+    private float x,y,z;
+    boolean acc_disp = false;
+    boolean isStreaming = false;
+    PrintWriter out;
 
 
     @Override
@@ -84,8 +110,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
-
+        //Initialize the buttons
         toggle = (ToggleButton) findViewById(R.id.toggle);
         toggle.setOnClickListener(this);
         testButton = (ToggleButton) findViewById(R.id.testButton);
@@ -99,7 +124,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         deleteLast = (Button) findViewById(R.id.deleteLast);
         deleteLast.setOnClickListener(this);
 
-
+        //Initialize text views
         xAccl = (TextView) findViewById(R.id.xAccl);
         yAccl = (TextView) findViewById(R.id.yAccl);
         zAccl = (TextView) findViewById(R.id.zAccl);
@@ -108,6 +133,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         txtRoll = (TextView) findViewById(R.id.Roll);
         numTraces = (TextView) findViewById(R.id.numTraces);
 
+        //Set text to display in each view
         xAccl.setText("xAccl: ----");
         yAccl.setText("yAccl: ----");
         zAccl.setText("zAccl: ----");
@@ -116,18 +142,27 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         txtPitch.setText("Pitch: ----");
         numTraces.setText("Number of Saved Gesture Traces: " + Integer.toString(this.getFilesDir().listFiles().length - 1));
 
-
-
         Log.d(TAG, "onCreate: Initializing Sensor Services.");
+
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
-
-
+        //Define the sensors
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         gravity = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
         rotationVector = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
 
+        //Set screen orientation
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+        //Network stuff
+        connectPhones = (Button) findViewById(R.id.send);
+        connectPhones.setOnClickListener(connectListener);
+        text=(TextView)findViewById(R.id.textin);
+        port=(EditText)findViewById(R.id.port);
+        ipAdr=(EditText)findViewById(R.id.ipadr);
+        text.setText("Press send to stream acceleration measurement");
+        port.setText("15000");
+        ipAdr.setText(serverIpAddress);
+        acc_disp =false;
 
         //if (sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY) != null) {
         //    Toast.makeText(this, "Gravity AVAILABLE", Toast.LENGTH_SHORT).show();
@@ -150,6 +185,58 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         };
     }
     */
+
+    private Button.OnClickListener connectListener = new Button.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            if (!connected) {
+                if (!serverIpAddress.equals("")) {
+                    connectPhones.setText("Stop Streaming");
+                    Thread cThread = new Thread(new ClientThread());
+                    cThread.start();
+                }
+            }
+            else{
+                connectPhones.setText("Start Streaming");
+                connected=false;
+                acc_disp=false;
+            }
+        }
+    };
+
+    public class ClientThread implements Runnable {
+        Socket socket;
+        public void run() {
+            try {
+                acc_disp=true;
+                PORT = Integer.parseInt(port.getText().toString());
+                serverIpAddress=ipAdr.getText().toString();
+                InetAddress serverAddr = InetAddress.getByName(serverIpAddress);
+                //InetAddress serverAddr = InetAddress.getByName("TURBOBEAVER");
+                socket = new Socket(serverAddr, PORT);
+                connected = true;
+                out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
+                while (connected) {
+                    out.printf("%10.2f\n", x);
+                    out.flush();
+                    Thread.sleep(2);
+                }
+            }
+            catch (Exception e) {
+
+            }
+            finally{
+                try{
+                    acc_disp=false;
+                    connected=false;
+                    connectPhones.setText("Start Streaming");
+                    //out.close();
+                    socket.close();
+                }catch(Exception a){
+                }
+            }
+        }
+    };
 
 
     @Override

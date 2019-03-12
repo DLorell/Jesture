@@ -27,6 +27,9 @@ import android.content.ContentResolver;
 import android.net.Uri;
 import android.provider.MediaStore;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener, OnClickListener {
@@ -128,13 +131,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+        //new HelloJNI();
 
-        //if (sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY) != null) {
-        //    Toast.makeText(this, "Gravity AVAILABLE", Toast.LENGTH_SHORT).show();
-        //} else {
-        //    // Failure! No Gravity Sensor.
-        //    Toast.makeText(this, "Failure! No Gravity Sensor", Toast.LENGTH_SHORT).show();
-        //}
 
     }
 
@@ -555,10 +553,31 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
                 File[] filelist = this.getFilesDir().listFiles();
 
+
                 for(int i = 0; i < filelist.length; i++){
 
+                    File f = filelist[i];
+                    List<Integer> num = new ArrayList<Integer>();
+                    int length = 0;
 
-                    if (Character.getNumericValue(filelist[i].getName().charAt(0)) == (filelist.length-1)){
+                    for(int j = 0; j<f.getName().length(); j++){
+
+                        if(Character.isDigit(f.getName().charAt(j))){
+                            num.add(Character.getNumericValue(f.getName().charAt(j)));
+                            length++;
+                        }else{
+                            break;
+                        }
+
+                    }
+
+                    int finalNum = 0;
+                    for(int k = 0; k < length; k++){
+                        finalNum += Math.pow(10, k) * num.get(length - (k + 1));
+                    }
+
+
+                    if (finalNum == (filelist.length-1)){
                         filelist[i].delete();
                         numTraces.setText("Number of Saved Gesture Traces: " + Integer.toString(this.getFilesDir().listFiles().length - 1));
                         break;
@@ -587,6 +606,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         gLabel = "slashleft";
                     }else{
                         toggle.setChecked(false);
+
+                        Toast.makeText(this, "Select gesture type before recording...",
+                                       Toast.LENGTH_SHORT).show();
+
                         break;
                     }
 

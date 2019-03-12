@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:context=".Transmission"
+    tools:showIn="@layout/activity_transmission">
+
+
+    <LinearLayout
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:layout_width="0px"
+        android:layout_height="0px"/>
+
+    <EditText android:id="@+id/port"
+            android:hint="@string/porthint"
+            android:label="@string/port"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:inputType="text"
+            android:layout_marginTop="30dp"/>
+
+    <EditText android:id="@+id/ipAdr"
+        android:hint="@string/ip"
+        android:label="@string/ipadr"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:inputType="text"
+        android:layout_marginTop="90dp"/>
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:layout_marginTop="250dp"
+            android:layout_marginLeft="100dp"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/predictionResult"
+            android:hint="@string/classification_result"/>
+
+    </RelativeLayout>
+
+
+
+
+    <ToggleButton
+        android:id="@+id/transmission"
+        android:layout_marginTop="350dp"
+        android:textOff="@string/begin_transmitting"
+        android:textOn="@string/stop_transmitting"
+        android:layout_width="fill_parent"
+        android:layout_height="200dp"
+        android:onClick="transmissionControl"/>
+
+
+</RelativeLayout>

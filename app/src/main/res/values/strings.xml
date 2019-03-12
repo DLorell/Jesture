@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">Jesture</string>
+    <string name="title_activity_transmission">Transmission</string>
+    <string name="activity2_name">Transmission</string>
+    <string name="text_header">Message Recieved</string>
+    <string name="firstthing">FirstThing</string>
+    <string name="port">port</string>
+    <string name="ipadr">ipAdr</string>
+    <string name="begin_transmitting">Begin Transmitting</string>
+    <string name="stop_transmitting">Stop Transmitting</string>
+    <string name="ip">IP:</string>
+    <string name="porthint">Port:</string>
+    <string name="classification_result">Classification Result: ____</string>
 </resources>

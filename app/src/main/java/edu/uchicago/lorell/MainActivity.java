@@ -1,6 +1,7 @@
 package edu.uchicago.lorell;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -78,7 +79,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     TextView xAccl, yAccl, zAccl, txtYaw, txtPitch, txtRoll, numTraces;
     ToggleButton toggle, testButton, circle, slashright, slashleft;
-    Button deleteLast;
+    Button deleteLast, transmission;
 
 
 
@@ -101,6 +102,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         slashright.setOnClickListener(this);
         deleteLast = (Button) findViewById(R.id.deleteLast);
         deleteLast.setOnClickListener(this);
+        transmission = (Button) findViewById(R.id.transmission);
+        transmission.setOnClickListener(this);
 
 
         xAccl = (TextView) findViewById(R.id.xAccl);
@@ -542,6 +545,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
+
+
+
     // This gets called every time you click a button.
     @Override
     public void onClick(View v) {
@@ -734,13 +740,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 slashleft.setChecked(false);
                 break;
 
+            case R.id.transmission:
+                Intent intent = new Intent(this, Transmission.class);
+                startActivity(intent);
 
         }
 
 
 
     }
-
 
 
 }

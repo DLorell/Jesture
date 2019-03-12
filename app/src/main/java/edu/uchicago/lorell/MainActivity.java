@@ -1,6 +1,7 @@
 package edu.uchicago.lorell;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -46,6 +47,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 //Network code taken from https://sacybernetics.wordpress.com/2012/06/01/logging-accelerometer-from-android-phone-on-pc/
 
@@ -90,7 +94,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     //Declare visual elements on screen
     TextView xAccl, yAccl, zAccl, txtYaw, txtPitch, txtRoll, numTraces;
     ToggleButton toggle, testButton, circle, slashright, slashleft, transmit;
-    Button deleteLast;
+    Button deleteLast, transmission;
+
 
     // Network stuff
     public int PORT = 15000;
@@ -121,8 +126,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         slashright.setOnClickListener(this);
         deleteLast = (Button) findViewById(R.id.deleteLast);
         deleteLast.setOnClickListener(this);
+
+
         transmit = (ToggleButton) findViewById(R.id.transmit);
         transmit.setOnClickListener(this);
+        transmission = (Button) findViewById(R.id.transmission);
+        transmission.setOnClickListener(this);
 
         //Initialize text views
         xAccl = (TextView) findViewById(R.id.xAccl);
@@ -162,13 +171,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         port=PORT;
         ipAdr=serverIpAddress;
         acc_disp =false;
+        //new HelloJNI();
 
-        //if (sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY) != null) {
-        //    Toast.makeText(this, "Gravity AVAILABLE", Toast.LENGTH_SHORT).show();
-        //} else {
-        //    // Failure! No Gravity Sensor.
-        //    Toast.makeText(this, "Failure! No Gravity Sensor", Toast.LENGTH_SHORT).show();
-        //}
 
     }
 
@@ -612,6 +616,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
+
+
+
     // This gets called every time you click a button.
     @Override
     public void onClick(View v) {
@@ -620,8 +627,31 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             case R.id.deleteLast:
                 File[] filelist = this.getFilesDir().listFiles();
-                for(int i = 0; i < filelist.length; i++) {
-                    if (Character.getNumericValue(filelist[i].getName().charAt(0)) == (filelist.length-1)){
+
+                for(int i = 0; i < filelist.length; i++){
+
+                    File f = filelist[i];
+                    List<Integer> num = new ArrayList<Integer>();
+                    int length = 0;
+
+                    for(int j = 0; j<f.getName().length(); j++){
+
+                        if(Character.isDigit(f.getName().charAt(j))){
+                            num.add(Character.getNumericValue(f.getName().charAt(j)));
+                            length++;
+                        }else{
+                            break;
+                        }
+
+                    }
+
+                    int finalNum = 0;
+                    for(int k = 0; k < length; k++){
+                        finalNum += Math.pow(10, k) * num.get(length - (k + 1));
+                    }
+
+
+                    if (finalNum == (filelist.length-1)){
                         filelist[i].delete();
                         numTraces.setText("Number of Saved Gesture Traces: " + Integer.toString(this.getFilesDir().listFiles().length - 1));
                         break;
@@ -641,6 +671,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         gLabel = "slashleft";
                     }else{
                         toggle.setChecked(false);
+
+                        Toast.makeText(this, "Select gesture type before recording...",
+                                       Toast.LENGTH_SHORT).show();
+
                         break;
                     }
                     startTime = System.currentTimeMillis();
@@ -757,6 +791,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 slashleft.setChecked(false);
                 break;
 
+            case R.id.transmission:
+                Intent intent = new Intent(this, Transmission.class);
+                startActivity(intent);
 
             case R.id.transmit:
 
@@ -781,7 +818,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
 
     }
-
 
 
 }

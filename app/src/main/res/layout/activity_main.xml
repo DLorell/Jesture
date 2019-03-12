@@ -133,5 +133,12 @@
         android:textOff="Transmit?"
         android:textOn="Transmitting"/>
 
+    <Button
+        android:id="@+id/transmission"
+        android:layout_width="fill_parent"
+        android:layout_height="70dp"
+        android:layout_marginTop="10sp"
+        android:text="Transmission"/>
+
 
 </LinearLayout>

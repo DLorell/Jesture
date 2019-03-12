@@ -89,17 +89,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     //Declare visual elements on screen
     TextView xAccl, yAccl, zAccl, txtYaw, txtPitch, txtRoll, numTraces;
-    ToggleButton toggle, testButton, circle, slashright, slashleft;
+    ToggleButton toggle, testButton, circle, slashright, slashleft, transmit;
     Button deleteLast;
 
     // Network stuff
     public int PORT = 15000;
-    private Button connectPhones;
     private String serverIpAddress = "10.0.0.5";
-    private boolean connected = false;
-    EditText port;
-    EditText ipAdr;
-    private float x,y,z;
+    private boolean transmitting = false;
+    int port;
+    String ipAdr;
     boolean acc_disp = false;
     boolean isStreaming = false;
     PrintWriter out;
@@ -123,6 +121,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         slashright.setOnClickListener(this);
         deleteLast = (Button) findViewById(R.id.deleteLast);
         deleteLast.setOnClickListener(this);
+        transmit = (ToggleButton) findViewById(R.id.transmit);
+        transmit.setOnClickListener(this);
 
         //Initialize text views
         xAccl = (TextView) findViewById(R.id.xAccl);
@@ -154,14 +154,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         //Network stuff
-        connectPhones = (Button) findViewById(R.id.send);
-        connectPhones.setOnClickListener(connectListener);
+        /*
+        connectPhones = (Button) findViewById(R.id.transmit);
+        connectPhones.setOnClickListener(this);
         text=(TextView)findViewById(R.id.textin);
-        port=(EditText)findViewById(R.id.port);
-        ipAdr=(EditText)findViewById(R.id.ipadr);
-        text.setText("Press send to stream acceleration measurement");
-        port.setText("15000");
-        ipAdr.setText(serverIpAddress);
+        */
+        port=PORT;
+        ipAdr=serverIpAddress;
         acc_disp =false;
 
         //if (sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY) != null) {
@@ -186,6 +185,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     }
     */
 
+    /*
     private Button.OnClickListener connectListener = new Button.OnClickListener() {
         @Override
         public void onClick(View v) {
@@ -202,22 +202,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 acc_disp=false;
             }
         }
-    };
+    };*/
 
     public class ClientThread implements Runnable {
         Socket socket;
         public void run() {
             try {
                 acc_disp=true;
-                PORT = Integer.parseInt(port.getText().toString());
-                serverIpAddress=ipAdr.getText().toString();
+                //PORT = Integer.parseInt(port.getText().toString());
+                //serverIpAddress=ipAdr.getText().toString();
                 InetAddress serverAddr = InetAddress.getByName(serverIpAddress);
                 //InetAddress serverAddr = InetAddress.getByName("TURBOBEAVER");
                 socket = new Socket(serverAddr, PORT);
-                connected = true;
+                transmitting = true;
                 out = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
-                while (connected) {
-                    out.printf("%10.2f\n", x);
+                while (transmitting) {
+                    out.printf("%10.2f, %10.2f, %10.2f\n", x, y, z);
                     out.flush();
                     Thread.sleep(2);
                 }
@@ -228,8 +228,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             finally{
                 try{
                     acc_disp=false;
-                    connected=false;
-                    connectPhones.setText("Start Streaming");
+                    transmitting=false;
                     //out.close();
                     socket.close();
                 }catch(Exception a){
@@ -263,8 +262,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     }
 
-
-
     public void calculateAngles(float[] result, float[] rVector){
         //caculate rotation matrix from rotation vector first
         SensorManager.getRotationMatrixFromVector(rMatrix, rVector);
@@ -281,8 +278,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             vector[i] = -Math.round(Math.toDegrees(vector[i]));
         }
     }
-
-
 
     //Make sure accelerationVector is of dimensions 3X1
     public float[] normalizeAccelVecOrientation(float[] yrp, double[][] accelerationVector){
@@ -357,7 +352,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         return(finalVec);
     }
 
-
+    // Simple matrix multiplication
     private double[][] matMult(double[][] mat1, double[][] mat2){
         int rows, columns;
 
@@ -392,7 +387,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         return(newMat);
     }
 
-
     public static boolean delete(File path) {
         boolean result = true;
         if (path.exists()) {
@@ -415,7 +409,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
     }
 
-
     public static void deleteFileFromMediaStore(final ContentResolver contentResolver, final File file) {
         int sdk = android.os.Build.VERSION.SDK_INT;
         if (sdk >= android.os.Build.VERSION_CODES.HONEYCOMB) {
@@ -437,18 +430,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         }
     }
-
-    public void hardcoreDelete(File file){
-
-        ContentResolver context = getContentResolver();
-
-        delete(file);
-        deleteFileFromMediaStore(context, file);
-    }
-
-
-
-
 
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
@@ -637,35 +618,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         switch (v.getId()){
 
-
             case R.id.deleteLast:
-
                 File[] filelist = this.getFilesDir().listFiles();
-
-                for(int i = 0; i < filelist.length; i++){
-
-
+                for(int i = 0; i < filelist.length; i++) {
                     if (Character.getNumericValue(filelist[i].getName().charAt(0)) == (filelist.length-1)){
                         filelist[i].delete();
                         numTraces.setText("Number of Saved Gesture Traces: " + Integer.toString(this.getFilesDir().listFiles().length - 1));
                         break;
                     }
-
-
                 }
-
-
-
-
                 break;
 
             case R.id.toggle:
-
                 boolean on = toggle.isChecked();
-
                 // "Hit record"
                 if(on) {
-
                     if(circle.isChecked()){
                         gLabel = "circle";
                     }else if(slashright.isChecked()){
@@ -676,16 +643,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                         toggle.setChecked(false);
                         break;
                     }
-
-
-
                     startTime = System.currentTimeMillis();
-
                     rotVecInitialized = 0;
                     gravInitialized = 0;
                     initialRotVec = new float[3];
                     record = "[";
-
 
                     x = 0.0;
                     y = 0.0;
@@ -705,12 +667,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     yLocPrev = 0.0;
                     zLocPrev = 0.0;
 
-
                     sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
                     sensorManager.registerListener(this, gravity, SensorManager.SENSOR_DELAY_UI);
                     sensorManager.registerListener(this, rotationVector, SensorManager.SENSOR_DELAY_UI);
-
-
 
                     // "Hit Stop Recording"
                 }else{
@@ -797,6 +756,24 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 circle.setChecked(false);
                 slashleft.setChecked(false);
                 break;
+
+
+            case R.id.transmit:
+
+                transmitting = toggle.isChecked();
+                if (!transmitting) {
+                    if (!serverIpAddress.equals("")) {
+                        Thread cThread = new Thread(new ClientThread());
+                        cThread.start();
+                    }
+                }
+                else{
+                    transmitting=false;
+                    acc_disp=false;
+                }
+                break;
+
+
 
 
         }

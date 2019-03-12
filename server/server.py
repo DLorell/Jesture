@@ -4,8 +4,7 @@ import socket
 from time import *
 import sys 
  
- 
- 
+
 serv=socket.socket()
  
 HOST=''
